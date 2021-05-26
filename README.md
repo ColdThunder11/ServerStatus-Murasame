@@ -11,7 +11,7 @@
 
 ## 兼容性
 * 服务端配置文件 √
-* 前端网页 √
+* 前端网页 基本兼容需要对在线时间的显示做修改
 * 服务端 ×
 * 客户端 ×
 
@@ -21,7 +21,7 @@
 ### 手动安装
 服务端：  
 1.clone本项目  
-2.构建前端（Hotaru_theme与本项目的Murasame_theme皆可），并将构建生产dist文件夹置于server_fastapi内  
+2.构建前端（Murasame_theme），并将构建生产dist文件夹置于server_fastapi内  
 3.进入server_fastapi目录  
 4.将config.json.example复制一份并且重命名为config.json，修改相关配置，也可以直接使用ServerStatus-Hotaru的配置文件  
 5.pip install -r requirements.txt  
