@@ -134,7 +134,7 @@ class ServerManager:
     async def auth_connection(self, ws: WebSocket, username: str) -> bool:
         print("Start auth")
         user = self.get_user_obj(username)
-        print(user)
+        #print(user)
         if user == None:
             return False
         await ws.accept()

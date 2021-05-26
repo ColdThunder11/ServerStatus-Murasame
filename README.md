@@ -25,8 +25,8 @@
 3.进入server_fastapi目录  
 4.将config.json.example复制一份并且重命名为config.json，修改相关配置，也可以直接使用ServerStatus-Hotaru的配置文件  
 5.pip install -r requirements.txt  
-6.python server.py  
-服务端默认监听0.0.0.0:28094，但是建议监听本地并在公网使用反代（需要同时反代http和websocket）
+6.python server.py或uvicorn server:app --reload  
+服务端默认监听0.0.0.0:28094，可自行在server.py修改。建议监听本地并在公网使用反代（需要同时反代http和websocket）
 
 客户端：  
 1.clone本项目，进入client_ws目录  
