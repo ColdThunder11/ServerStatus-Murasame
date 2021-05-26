@@ -29,9 +29,12 @@
 服务端默认监听0.0.0.0:28094，可自行在server.py修改。建议监听本地并在公网使用反代（需要同时反代http和websocket）
 
 客户端：  
-1.clone本项目，进入client_ws目录  
-2.pip install -r requirements.txt  
-3.修改文件开头的SERVER（如反代使用了tls加密，请将ws改为wss）,USER,PASSWORD,INTERVAL(可选),使之与服务端配置相同  
+1.
+```shell
+wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-psutil.py  
+pip install psutil websocket-client
+```
+2.修改文件开头的SERVER（如反代使用了tls加密，请将ws改为wss）,USER,PASSWORD,INTERVAL(可选),使之与服务端配置相同  
 3.python status-psutil.py  
 
 ## 相关开源项目 ： 
