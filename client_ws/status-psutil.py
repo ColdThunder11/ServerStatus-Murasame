@@ -131,7 +131,7 @@ def get_network(ip_version):
     return False
 
 def on_message(ws:websocket.WebSocketApp, message):
-    print(ws)
+    #print(ws)
     print(message)
     if message != "Authentication success":
         print(f"Auth fail, err message :{message}")
