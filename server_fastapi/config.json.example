@@ -1,0 +1,14 @@
+{
+    "servers": [
+        {
+            "username": "Local",
+            "password": "Local",
+            "name": "Local",
+            "type": "None",
+            "host": "None",
+            "location": "China",
+            "disabled": false,
+            "region": "CN"
+        }
+    ]
+}
