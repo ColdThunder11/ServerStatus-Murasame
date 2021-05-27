@@ -2,7 +2,8 @@
 
 感谢ServerStatus-Hotaru，又一个云探针诞生了（大雾  
 本项目在ServerStatus-Hotaru的基础上使用fastapi重构了服务端，部分修改了客户端与前端  
-项目还在非常原始的阶段，可能存在严重的问题
+项目还在非常原始的阶段，可能存在严重的问题  
+演示站：https://status.coldthunder11.com/
 
 ## 与ServerStatus-Hotaru的对比
 * 纯python实现
