@@ -137,26 +137,28 @@ class ServerManager:
         #print(user)
         if user == None:
             return False
-        await ws.accept()
-        password = await ws.receive_text()
-        if password != user["password"]:
-            print("Authentication failed")
-            await ws.send_text("Authentication failed")
-            await ws.close()
-            return False
-        else:
-            print("Authentication success")
-            await ws.send_text("Authentication success")
-            self.lock.acquire()
-            if username in self.active_clients.keys():
-                print("A exsisting connection will be closed")
-                try:
+        try:
+            await ws.accept()
+            password = await ws.receive_text()
+            if password != user["password"]:
+                print("Authentication failed")
+                await ws.send_text("Authentication failed")
+                await ws.close()
+                return False
+            else:
+                print("Authentication success")
+                await ws.send_text("Authentication success")
+                self.lock.acquire()
+                if username in self.active_clients.keys():
+                    print("A exsisting connection will be closed")
                     await self.active_clients[username].close_ws()
-                except:
-                    pass
-            self.active_clients[username] = ClientManager(username, ws)
-            self.lock.release()
-            return True
+                self.active_clients[username] = ClientManager(username, ws)
+                self.lock.release()
+                return True
+        except:
+            if self.lock.locked():
+                self.lock.release()
+            return False
 
     def get_client_manager(self, username: str) -> ClientManager:
         self.lock.acquire()
@@ -268,20 +270,16 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
         if not (await manager.auth_connection(websocket, user_name)):
             return
         cmanager = manager.get_client_manager(user_name)
-    except WebSocketDisconnect:
-        manager.remove_user(user_name)
     except:
         print("A websocket connection has been closed")
         traceback.print_exc()
         manager.remove_user(user_name)
+        return
     while True:
         try:
             res = await websocket.receive_json()
             #print(f"Get status report from {user_name}")
             cmanager.set_status(res)
-        except WebSocketDisconnect:
-            manager.remove_user(user_name)
-            return
         except:
             print("A websocket connection has been closed")
             traceback.print_exc()
