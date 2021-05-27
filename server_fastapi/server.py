@@ -193,7 +193,7 @@ class ServerManager:
                     self.lock.release()
                     continue
                 build_json["servers"].append({
-                    "name": user["username"],
+                    "name": user["name"],
                     "type": user["type"],
                     "host": user["host"],
                     "location": user["location"],
