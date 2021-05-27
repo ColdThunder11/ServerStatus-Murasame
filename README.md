@@ -40,6 +40,7 @@ linux版：
 ```shell
 wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-client.py   
 pip install websocket-client  
+修改文件开头的SERVER（如反代使用了tls加密，请将ws改为wss）,USER,PASSWORD,INTERVAL(可选),使之与服务端配置相同  
 python status-client.py 
 ```
 psutil版：  
