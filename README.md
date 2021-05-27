@@ -51,6 +51,7 @@ psutil版：
 
 ## 相关开源项目 ： 
 * ServerStatus-Hotaru：https://github.com/CokeMine/ServerStatus-Hotaru
+* Hotaru_theme：https://github.com/CokeMine/Hotaru_theme
 * ServerStatus-Toyo：https://github.com/ToyoDAdoubiBackup/ServerStatus-Toyo
 * ServerStatus：https://github.com/BotoX/ServerStatus
 * mojeda's ServerStatus: https://github.com/mojeda/ServerStatus
