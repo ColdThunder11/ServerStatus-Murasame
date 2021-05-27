@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 # Oringin: https://github.com/CokeMine/ServerStatus-Hotaru
 
-SERVER = "ws://127.0.0.1:28094"
-#PORT = 35601
-USER = "Local"
-PASSWORD = "Local"
-INTERVAL = 2  # 更新间隔，单位：秒
-
 import socket
 from sys import is_finalizing
 import time
@@ -26,7 +20,11 @@ try:
 except ImportError:
     import _thread as thread
 
-is_ws_alive = False
+SERVER = "ws://127.0.0.1:28094"
+#PORT = 35601
+USER = "Local"
+PASSWORD = "Local"
+INTERVAL = 2  # 更新间隔，单位：秒
 
 def get_uptime():
     return int(time.time() - psutil.boot_time())
@@ -191,7 +189,7 @@ def on_open(ws:websocket.WebSocketApp):
 if __name__ == '__main__':
     while True:
         try:
-            print("Start connecting")
+            print(f"Connecting to {SERVER}/ws/client/{USER}")
             ws = websocket.WebSocketApp(f"{SERVER}/ws/client/{USER}",
                                         on_open = on_open,
                                         on_message=on_message,

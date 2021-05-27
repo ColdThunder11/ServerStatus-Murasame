@@ -1,6 +1,7 @@
 <template>
   <the-header/>
   <on-error v-show="!servers"/>
+  <on-ws-error v-show="!isWsAlive"/>
   <servers-table :servers="servers"/>
   <update-time :updated="updated"/>
   <servers-card :servers="servers"/>
@@ -12,6 +13,7 @@ import {defineComponent, ref, onMounted} from 'vue';
 import axios from 'axios';
 import TheHeader from '@/components/TheHeader.vue';
 import OnError from '@/components/OnError.vue';
+import OnWsError from '@/components/OnWsError.vue';
 import ServersTable from '@/components/ServersTable.vue';
 import UpdateTime from '@/components/UpdateTime.vue';
 import ServersCard from '@/components/ServersCard.vue';
@@ -22,6 +24,7 @@ export default defineComponent({
   components: {
     TheHeader,
     OnError,
+    OnWsError,
     ServersTable,
     ServersCard,
     TheFooter,
@@ -30,6 +33,8 @@ export default defineComponent({
   setup() {
     const servers = ref<Array<StatusItem | BoxItem>>();
     const updated = ref<number>();
+    const ws = ref<WebSocket>();
+    const isWsAlive = ref<boolean>();
     /*
     onMounted(() => setInterval(() => {
       axios.get('json/stats.json')
@@ -58,44 +63,55 @@ export default defineComponent({
           .catch(err => console.log(err));
     }, 2000));*/
     //websocket type
-    onMounted(() => setTimeout(() => {
+    onMounted(() => setInterval(() => {
       const host = window.location.host
-      let ws;
-      if(window.location.protocol == "http") ws = new WebSocket("ws://"+host+"/ws/stats");
-      else ws = new WebSocket("wss://"+host+"/ws/stats");
-      ws.onopen = ()=>{
-        console.log('websocket连接成功');
+      try{
+        if(!ws.value) throw new Error("ws is null")
+        ws.value?.send("get satats")
       }
-      ws.onopen = ()=>{
-        console.log('websocket连接成功');
-      }
-      ws.onmessage = (res)=>{
-        const reStatus = JSON.parse(res.data);
-        let i = 0;
-        for(i=0;i<reStatus.servers.length;i++){
-          if(isNaN(reStatus.servers[i].uptime)) continue
-          const uptime = reStatus.servers[i].uptime;
-          if(uptime<60){
-            reStatus.servers[i].uptime = Math.round(uptime)+" 秒"
-          }
-          else if(uptime<60*60){
-            reStatus.servers[i].uptime = Math.round(uptime/60) + " 分 " + Math.round(uptime%60)+" 秒"
-          }
-          else if(uptime<60*60*24){
-            reStatus.servers[i].uptime = Math.round(uptime/(60*60)) + " 小时 "+ Math.round((uptime/60)%60) + " 分 " 
-          }
-          else{
-            reStatus.servers[i].uptime = Math.round(uptime/(60*60*24)) + " 天 " + Math.round(((uptime/(60*60)))%24) + " 小时 "
-          }
+      catch{
+        if(window.location.protocol == "http:") ws.value = new WebSocket("ws://"+host+"/ws/stats");
+        else ws.value = new WebSocket("wss://"+host+"/ws/stats");
+        ws.value.onopen = ()=>{
+          console.log('websocket连接成功');
+          isWsAlive.value = true;
         }
-        servers.value = reStatus.servers;
-        updated.value = Number(reStatus.updated);
-        
+        ws.value.onclose = (e)=>{
+          ws.value = undefined
+          isWsAlive.value = false
+        }
+        ws.value.onerror = (e)=>{
+          ws.value = undefined
+          isWsAlive.value = false
+        }
+        ws.value.onmessage = (res)=>{
+          const reStatus = JSON.parse(res.data);
+          let i = 0;
+          for(i=0;i<reStatus.servers.length;i++){
+            if(isNaN(reStatus.servers[i].uptime)) continue
+            const uptime = reStatus.servers[i].uptime;
+            if(uptime<60){
+              reStatus.servers[i].uptime = Math.round(uptime)+" 秒"
+            }
+            else if(uptime<60*60){
+              reStatus.servers[i].uptime = Math.round(uptime/60) + " 分 " + Math.round(uptime%60)+" 秒"
+            }
+            else if(uptime<60*60*24){
+              reStatus.servers[i].uptime = Math.round(uptime/(60*60)) + " 小时 "+ Math.round((uptime/60)%60) + " 分 " 
+            }
+            else{
+              reStatus.servers[i].uptime = Math.round(uptime/(60*60*24)) + " 天 " + Math.round(((uptime/(60*60)))%24) + " 小时 "
+            }
+          }
+          servers.value = reStatus.servers;
+          updated.value = Number(reStatus.updated);
+        }
       }
     }, 2000));
     return {
       servers,
-      updated
+      updated,
+      isWsAlive
     };
   }
 });

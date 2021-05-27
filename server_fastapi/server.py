@@ -288,10 +288,18 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
 
 @app.websocket("/ws/stats")
 async def get_status_ws(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        await websocket.send_json(status_json)
-        await asyncio.sleep(2)
+    try:
+        await websocket.accept()
+        while True:
+            res = await websocket.receive_text()
+            if res == "get satats":
+                await websocket.send_json(status_json)
+                await asyncio.sleep(0.3)
+            else:
+                websocket.close()
+                return
+    except:
+        print("Stats ws connection close")
 
 @app.get("/json/stats.json")
 async def get_json_status():
