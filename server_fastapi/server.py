@@ -266,7 +266,6 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
             return
         cmanager = manager.get_client_manager(user_name)
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
         manager.remove_user(user_name)
     except:
         print("A websocket connection has been closed")
