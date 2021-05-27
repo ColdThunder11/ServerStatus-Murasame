@@ -65,48 +65,51 @@ export default defineComponent({
     //websocket type
     onMounted(() => setInterval(() => {
       const host = window.location.host
-      try{
-        if(!ws.value) throw new Error("ws is null")
-        ws.value?.send("get satats")
-      }
-      catch{
-        if(window.location.protocol == "http:") ws.value = new WebSocket("ws://"+host+"/ws/stats");
-        else ws.value = new WebSocket("wss://"+host+"/ws/stats");
-        ws.value.onopen = ()=>{
-          console.log('websocket连接成功');
-          isWsAlive.value = true;
-        }
-        ws.value.onclose = (e)=>{
-          ws.value = undefined
-          isWsAlive.value = false
-        }
-        ws.value.onerror = (e)=>{
-          ws.value = undefined
-          isWsAlive.value = false
-        }
-        ws.value.onmessage = (res)=>{
-          const reStatus = JSON.parse(res.data);
-          let i = 0;
-          for(i=0;i<reStatus.servers.length;i++){
-            if(isNaN(reStatus.servers[i].uptime)) continue
-            const uptime = reStatus.servers[i].uptime;
-            if(uptime<60){
-              reStatus.servers[i].uptime = Math.round(uptime)+" 秒"
+        if(!ws.value) {
+          try{
+            if(window.location.protocol == "http:") ws.value = new WebSocket("ws://"+host+"/ws/stats");
+            else ws.value = new WebSocket("wss://"+host+"/ws/stats");
+            ws.value.onopen = ()=>{
+              console.log('websocket连接成功');
+              isWsAlive.value = true;
             }
-            else if(uptime<60*60){
-              reStatus.servers[i].uptime = Math.round(uptime/60) + " 分 " + Math.round(uptime%60)+" 秒"
+            ws.value.onclose = (e)=>{
+              ws.value = undefined
+              isWsAlive.value = false
             }
-            else if(uptime<60*60*24){
-              reStatus.servers[i].uptime = Math.round(uptime/(60*60)) + " 小时 "+ Math.round((uptime/60)%60) + " 分 " 
+            ws.value.onerror = (e)=>{
+              ws.value = undefined
+              isWsAlive.value = false
             }
-            else{
-              reStatus.servers[i].uptime = Math.round(uptime/(60*60*24)) + " 天 " + Math.round(((uptime/(60*60)))%24) + " 小时 "
+            ws.value.onmessage = (res)=>{
+              const reStatus = JSON.parse(res.data);
+              let i = 0;
+              for(i=0;i<reStatus.servers.length;i++){
+                if(isNaN(reStatus.servers[i].uptime)) continue
+                const uptime = reStatus.servers[i].uptime;
+                if(uptime<60){
+                  reStatus.servers[i].uptime = Math.round(uptime)+" 秒"
+                }
+                else if(uptime<60*60){
+                  reStatus.servers[i].uptime = Math.round(uptime/60) + " 分 " + Math.round(uptime%60)+" 秒"
+                }
+                else if(uptime<60*60*24){
+                  reStatus.servers[i].uptime = Math.round(uptime/(60*60)) + " 小时 "+ Math.round((uptime/60)%60) + " 分 " 
+                }
+                else{
+                  reStatus.servers[i].uptime = Math.round(uptime/(60*60*24)) + " 天 " + Math.round(((uptime/(60*60)))%24) + " 小时 "
+                }
+              }
+              servers.value = reStatus.servers;
+              updated.value = Number(reStatus.updated);
             }
           }
-          servers.value = reStatus.servers;
-          updated.value = Number(reStatus.updated);
+          catch{
+            isWsAlive.value = false
+            ws.value = undefined
+          }
         }
-      }
+        else if(isWsAlive.value) ws.value?.send("get satats")
     }, 2000));
     return {
       servers,

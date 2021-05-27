@@ -147,12 +147,8 @@ class ServerManager:
                 print("Authentication success")
                 await ws.send_text("Authentication success")
                 with self.lock:
-                    if username in self.active_clients.keys():
-                        print("A exsisting connection will be closed")
-                        try:
-                            await self.active_clients[username].close_ws()
-                        except:
-                            pass
+                    #if username in self.active_clients.keys():
+                        #print("A exsisting connection will be closed")
                     self.active_clients[username] = ClientManager(username, ws)
                 return True
         except:
