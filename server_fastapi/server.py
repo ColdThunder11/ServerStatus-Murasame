@@ -97,28 +97,26 @@ class ClientManager:
         await self.ws.close()
 
     def get_status(self) -> Dict:
-        self.lock.acquire()
-        status = copy.copy(self.status)
-        self.lock.release()
+        with self.lock:
+            status = copy.copy(self.status)
         return status
 
     def set_status(self, data):
-        self.lock.acquire()
-        self.status["uptime"] = data["uptime"]
-        self.status["load"] = data["load"]
-        self.status["memory_total"] = data["memory_total"]
-        self.status["memory_used"] = data["memory_used"]
-        self.status["swap_total"] = data["swap_total"]
-        self.status["swap_used"] = data["swap_used"]
-        self.status["hdd_total"] = data["hdd_total"]
-        self.status["hdd_used"] = data["hdd_used"]
-        self.status["cpu"] = data["cpu"]
-        self.status["network_rx"] = data["network_rx"]
-        self.status["network_tx"] = data["network_tx"]
-        self.status["network_in"] = data["network_in"]
-        self.status["network_out"] = data["network_out"]
-        self.status["update_time"] = int(time.time())
-        self.lock.release()
+        with self.lock:
+            self.status["uptime"] = data["uptime"]
+            self.status["load"] = data["load"]
+            self.status["memory_total"] = data["memory_total"]
+            self.status["memory_used"] = data["memory_used"]
+            self.status["swap_total"] = data["swap_total"]
+            self.status["swap_used"] = data["swap_used"]
+            self.status["hdd_total"] = data["hdd_total"]
+            self.status["hdd_used"] = data["hdd_used"]
+            self.status["cpu"] = data["cpu"]
+            self.status["network_rx"] = data["network_rx"]
+            self.status["network_tx"] = data["network_tx"]
+            self.status["network_in"] = data["network_in"]
+            self.status["network_out"] = data["network_out"]
+            self.status["update_time"] = int(time.time())
 
 class ServerManager:
     def __init__(self):
@@ -148,30 +146,28 @@ class ServerManager:
             else:
                 print("Authentication success")
                 await ws.send_text("Authentication success")
-                self.lock.acquire()
-                if username in self.active_clients.keys():
-                    print("A exsisting connection will be closed")
-                    await self.active_clients[username].close_ws()
-                self.active_clients[username] = ClientManager(username, ws)
-                self.lock.release()
+                with self.lock:
+                    if username in self.active_clients.keys():
+                        print("A exsisting connection will be closed")
+                        try:
+                            await self.active_clients[username].close_ws()
+                        except:
+                            pass
+                    self.active_clients[username] = ClientManager(username, ws)
                 return True
         except:
-            if self.lock.locked():
-                self.lock.release()
             return False
 
     def get_client_manager(self, username: str) -> ClientManager:
-        self.lock.acquire()
-        manager = None
-        if username in self.active_clients.keys():
-            manager = self.active_clients[username]
-        self.lock.release()
+        with self.lock:
+            manager = None
+            if username in self.active_clients.keys():
+                manager = self.active_clients[username]
         return manager
 
     def get_all_client_manager(self):
-        self.lock.acquire()
-        managers = copy.copy(self.active_clients)
-        self.lock.release()
+        with self.lock:
+            managers = copy.copy(self.active_clients)
         return managers
 
     async def get_status_json(self):
@@ -183,60 +179,57 @@ class ServerManager:
             if user["disabled"] == True:
                 continue
             username = user["username"]
-            self.lock.acquire()
-            if username in self.active_clients.keys():
-                status = self.active_clients[username].get_status()
-                if status["update_time"] != None and int(time.time()) - status["update_time"] > 10:#as offline
-                    try:
-                        self.active_clients[username].close_ws()
-                    except:
-                        pass
-                    del self.active_clients[username]
-                    self.lock.release()
-                    continue
-                build_json["servers"].append({
-                    "name": user["name"],
-                    "type": user["type"],
-                    "host": user["host"],
-                    "location": user["location"],
-                    "online4": True,
-                    "online6": False,
-                    "uptime": status["uptime"],
-                    "load": status["load"],
-                    "network_rx": status["network_rx"],
-                    "network_tx": status["network_tx"],
-                    "network_in": status["network_in"],
-                    "network_out": status["network_out"],
-                    "cpu": status["cpu"],
-                    "memory_total": status["memory_total"],
-                    "memory_used": status["memory_used"],
-                    "swap_total": status["swap_total"],
-                    "swap_used": status["swap_used"],
-                    "hdd_total": status["hdd_total"],
-                    "hdd_used": status["hdd_used"],
-                    "custom": "",
-                    "region": user["region"]
-                })
-            else:
-                build_json["servers"].append({
-                    "name": user["name"],
-                    "type": user["type"],
-                    "host": user["host"],
-                    "location": user["location"],
-                    "online4": False,
-                    "online6": False,
-                    "region": user["region"]
-                })
-            self.lock.release()
+            with self.lock:
+                if username in self.active_clients.keys():
+                    status = self.active_clients[username].get_status()
+                    if status["update_time"] != None and int(time.time()) - status["update_time"] > 10:#as offline
+                        try:
+                            await self.active_clients[username].close_ws()
+                        except:
+                            pass
+                        del self.active_clients[username]
+                        continue
+                    build_json["servers"].append({
+                        "name": user["name"],
+                        "type": user["type"],
+                        "host": user["host"],
+                        "location": user["location"],
+                        "online4": True,
+                        "online6": False,
+                        "uptime": status["uptime"],
+                        "load": status["load"],
+                        "network_rx": status["network_rx"],
+                        "network_tx": status["network_tx"],
+                        "network_in": status["network_in"],
+                        "network_out": status["network_out"],
+                        "cpu": status["cpu"],
+                        "memory_total": status["memory_total"],
+                        "memory_used": status["memory_used"],
+                        "swap_total": status["swap_total"],
+                        "swap_used": status["swap_used"],
+                        "hdd_total": status["hdd_total"],
+                        "hdd_used": status["hdd_used"],
+                        "custom": "",
+                        "region": user["region"]
+                    })
+                else:
+                    build_json["servers"].append({
+                        "name": user["name"],
+                        "type": user["type"],
+                        "host": user["host"],
+                        "location": user["location"],
+                        "online4": False,
+                        "online6": False,
+                        "region": user["region"]
+                    })
         return build_json
 
     def remove_user(self, username: str):
-        self.lock.acquire()
-        try:
-            del self.active_clients[username]
-        except:
-            pass
-        self.lock.release()
+        with self.lock:
+            try:
+                del self.active_clients[username]
+            except:
+                pass
 
 manager = ServerManager()
 
