@@ -140,7 +140,7 @@ def get_network(ip_version):
     except Exception:
         return False
 
-def on_message(ws:websocket.WebSocketApp, message):
+def on_message(ws, message):
     #print(ws)
     print(message)
     if message != "Authentication success":
@@ -161,7 +161,7 @@ def on_close(ws):
     #print(ws)
     print("Websocket connection closed")
 
-def on_open(ws:websocket.WebSocketApp):
+def on_open(ws):
     print("Websocket crearte sucess")
     def run(*args):
         global is_ws_alive
