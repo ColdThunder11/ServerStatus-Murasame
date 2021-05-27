@@ -230,7 +230,10 @@ class ServerManager:
 
     def remove_user(self, username: str):
         self.lock.acquire()
-        del self.active_clients[username]
+        try:
+            del self.active_clients[username]
+        except:
+            pass
         self.lock.release()
 
 manager = ServerManager()
