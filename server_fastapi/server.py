@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from logging import Manager, debug, setLogRecordFactory
+from logging import ERROR, Manager, debug, error, setLogRecordFactory
+import async_timeout
 from fastapi import FastAPI, Header, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from starlette.routing import websocket_session
@@ -17,6 +18,7 @@ import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
+from async_timeout import timeout
 
 app = FastAPI()
 
@@ -256,12 +258,15 @@ async def get_robots_txt():
 async def report_ws_endpoint(websocket: WebSocket, user_name: str):
     print(f"Get new client ws connection USER={user_name}")
     try:
-        if not (await manager.auth_connection(websocket, user_name)):
-            return
+        async with timeout(20):
+            if not (await manager.auth_connection(websocket, user_name)):
+                return
         cmanager = manager.get_client_manager(user_name)
     except:
         print("A websocket connection has been closed")
         traceback.print_exc()
+        if manager.lock.locked():
+            manager.lock.release()
         manager.remove_user(user_name)
         return
     while True:
@@ -278,11 +283,13 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
 @app.websocket("/ws/stats")
 async def get_status_ws(websocket: WebSocket):
     try:
-        await websocket.accept()
+        async with timeout(10):
+            await websocket.accept()
         while True:
             res = await websocket.receive_text()
             if res == "get satats":
-                await websocket.send_json(status_json)
+                async with timeout(10):
+                    await websocket.send_json(status_json)
                 await asyncio.sleep(0.3)
             else:
                 websocket.close()
