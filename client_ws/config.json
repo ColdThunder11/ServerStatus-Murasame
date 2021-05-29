@@ -1,0 +1,6 @@
+{
+    "server": "ws://127.0.0.1:28094",
+    "user": "Local",
+    "password": "Local",
+    "interval": 2 
+}

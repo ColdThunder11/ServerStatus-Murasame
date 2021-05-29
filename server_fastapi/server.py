@@ -154,6 +154,9 @@ class ServerManager:
                     self.active_clients[username] = ClientManager(username, ws)
                 return True
         except:
+            if manager.lock.locked():
+                print("detcet unolcked lock, lock will be auto released")
+                manager.lock.release()
             return False
 
     def get_client_manager(self, username: str) -> ClientManager:
@@ -173,11 +176,13 @@ class ServerManager:
             "servers":  [],
             "updated": str(int(time.time()))
         }
-        for user in user_list["servers"]:
-            if user["disabled"] == True:
-                continue
-            username = user["username"]
-            with self.lock:
+        if self.lock.locked():
+            return None
+        with self.lock:
+            for user in user_list["servers"]:
+                if user["disabled"] == True:
+                    continue
+                username = user["username"]
                 if username in self.active_clients.keys():
                     status = self.active_clients[username].get_status()
                     if status["update_time"] != None and int(time.time()) - status["update_time"] > 10:#as offline
@@ -185,7 +190,17 @@ class ServerManager:
                             await self.active_clients[username].close_ws()
                         except:
                             pass
-                        del self.active_clients[username]
+                        if username in self.active_clients.keys():
+                            del self.active_clients[username]
+                        build_json["servers"].append({
+                            "name": user["name"],
+                            "type": user["type"],
+                            "host": user["host"],
+                            "location": user["location"],
+                            "online4": False,
+                            "online6": False,
+                            "region": user["region"]
+                        })
                         continue
                     build_json["servers"].append({
                         "name": user["name"],
@@ -224,16 +239,17 @@ class ServerManager:
 
     def remove_user(self, username: str):
         with self.lock:
-            try:
+            if username in self.active_clients.keys():
                 del self.active_clients[username]
-            except:
-                pass
+        return
 
 manager = ServerManager()
 
 async def refesh_status():
     global status_json
-    status_json = await manager.get_status_json()
+    status = await manager.get_status_json()
+    if status != None:
+        status_json = status
     #print("refesh_status success")
 
 @app.get("/")
@@ -266,12 +282,18 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
         print("A websocket connection has been closed")
         traceback.print_exc()
         if manager.lock.locked():
+            print("detcet unolcked lock, lock will be auto released")
             manager.lock.release()
         manager.remove_user(user_name)
         return
     while True:
         try:
-            res = await websocket.receive_json()
+            async with timeout(15):
+                try:
+                    res = await websocket.receive_json()
+                except:
+                    print("websocket wait error, drop it")
+                    break
             #print(f"Get status report from {user_name}")
             cmanager.set_status(res)
         except:
