@@ -259,7 +259,7 @@ async def get_root_index():
 @app.get("/index.html")
 async def get_index():
     with open(path.join(path.dirname(__file__),"dist","index.html"),"r",encoding="utf8")as fp:
-        html_content = "".join(fp.readlines())
+        html_content = fp.read()
     return HTMLResponse(content=html_content, status_code=200)
 
 @app.get("/favicon.ico")
