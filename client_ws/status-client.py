@@ -196,7 +196,7 @@ def on_open(ws):
     thread.start_new_thread(run, ())
 
 if __name__ == '__main__':
-    with open(path.join(path.dirname(__file__),"config.json"),"r",ncoding="utf-8") as fp:
+    with open(path.join(path.dirname(__file__),"config.json"),"r",encoding="utf-8") as fp:
         config = json.load(fp)
     status_user = config["user"]
     status_server = config["server"]

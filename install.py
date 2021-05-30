@@ -77,6 +77,7 @@ if system_type == "debian" and action == "ic":
         fp.truncate()
         fp.writelines(lines)
     print("服务安装完成")
+    system("systemctl daemon-reload")
     system("systemctl start statusc")
     system("systemctl enable statusc")
     print("服务启动完成")
