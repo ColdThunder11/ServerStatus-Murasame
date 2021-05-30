@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${ClientPath}
-ExecStart=${ClientFile}
+ExecStart=python3 ${ClientFile}
 
 [Install]
 WantedBy=multi-user.target

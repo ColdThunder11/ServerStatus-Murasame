@@ -35,19 +35,20 @@ if system_type == "debian" and action == "ic":
     print("正在安装依赖...")
     system("apt update")
     system("apt install -y wget git")
-    current_path = path.dirname(__file__)
-    system("wget -P "+ current_path + " https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/client_ws/status-client.py")
-    system("wget -P "+ current_path + " https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/client_ws/config.json")
+    current_path = path.dirname(path.abspath(__file__))
+    print("安装目录 "+current_path)
+    system("wget -P "+ current_path + " https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/client_ws/status-client.py -O status-client.py")
+    #system("wget -P "+ current_path + " https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/client_ws/config.json")
     if use_pip:
         system("python3 -m pip install websocket-client")
     else:
         system("git clone --depth=1 https://github.com/websocket-client/websocket-client.git")
         system("cd "+path.join(current_path,"websocket-client")+" && python3 setup.py install")
-    print("\n请输入服务端的连接地址，应当以ws://或wss://开头（例如ws://127.0.0.1:28094）\n")
+    print("请输入服务端的连接地址，应当以ws://或wss://开头（例如ws://127.0.0.1:28094）")
     server_addr = input()
-    print("请输入连接的用户名\n")
+    print("请输入连接的用户名")
     user = input()
-    print("请输入连接的密码\n")
+    print("请输入连接的密码")
     password = input()
     print("正在创建配置文件...")
     config = {
@@ -56,15 +57,15 @@ if system_type == "debian" and action == "ic":
         "password": password,
         "interval": 2 
     }
-    with open(path.join(current_path,"config.json"),'r+',encoding='utf8')as fp:
+    with open(path.join(current_path,"config.json"),'w',encoding='utf8')as fp:
         fp.seek(0)
         fp.truncate()
         json.dump(config,fp)
     print("正在配置文件创建完成...")
     print("正在安装服务...")
-    system("wget -P "+ current_path + " https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/service/debian_client.service")
+    system("wget -P "+ current_path + " https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/service/debian_client.service -O debian_client.service")
     system("mv -f "+path.join(current_path,"debian_client.service")+" /etc/systemd/system/statusc.service")
-    with open("/etc/systemd/system/statusc.service",'r',encoding='utf8')as fp:
+    with open("/etc/systemd/system/statusc.service",'r+',encoding='utf8')as fp:
         fp.seek(0)
         lines = fp.readlines()
         for i in range(len(lines)):
