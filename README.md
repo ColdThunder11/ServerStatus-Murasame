@@ -52,7 +52,7 @@ pip install websocket-client
 python status-client.py 
 ```
 psutil版：  
-1.下载https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-psutil.py以及https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/config.json  
+1.下载https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-psutil.py 以及https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/config.json  
 2.pip install psutil websocket-client  
 3.修改config.json  
 4.python status-psutil.py  
