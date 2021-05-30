@@ -33,22 +33,37 @@
 3.进入server_fastapi目录  
 4.将config.json.example复制一份并且重命名为config.json，修改相关配置，也可以直接使用ServerStatus-Hotaru的配置文件  
 5.pip install -r requirements.txt  
-6.python server.py或uvicorn server:app --host 监听IP --port 端口号 --reload  
-服务端默认监听0.0.0.0:28094，可自行在server.py修改。建议监听本地并在公网使用反代（需要同时反代http和websocket）
+6.python server.py或uvicorn server:app --host 监听IP --port 端口号   
+服务端默认监听0.0.0.0:28094，可自行在server.py修改。建议监听本地并在公网使用反代（需要同时反代http和websocket）  
+或  
+1.去release里下载server.zip  
+2.将config.json.example复制一份并且重命名为config.json，修改相关配置，也可以直接使用ServerStatus-Hotaru的配置文件  
+3.pip install -r requirements.txt  
+4.python server.py或uvicorn server:app --host 监听IP --port 端口号   
+服务端默认监听0.0.0.0:28094，可自行在server.py修改。建议监听本地并在公网使用反代（需要同时反代http和websocket）  
 
 客户端：  
 linux版：  
 ```shell
-wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-client.py   
+wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-client.py  
+wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/config.json
 pip install websocket-client  
-修改文件开头的SERVER（如反代使用了tls加密，请将ws改为wss）,USER,PASSWORD,INTERVAL(可选),使之与服务端配置相同  
+修改config.json  
 python status-client.py 
 ```
 psutil版：  
-1.下载https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-psutil.py  
-2.pip install psutil websocket-client 
-3.修改文件开头的SERVER（如反代使用了tls加密，请将ws改为wss）,USER,PASSWORD,INTERVAL(可选),使之与服务端配置相同  
+1.下载https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-psutil.py以及https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/config.json  
+2.pip install psutil websocket-client  
+3.修改config.json  
 4.python status-psutil.py  
+
+### 一键安装
+客户端(当前仅支持Debian):  
+会在当前目录安装，请先切换好目录  
+```shell
+wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/install.py
+python3 install.py -c 如果本机没有安装pip，可以使用-nopip参数本地处理依赖
+```
 
 ## 相关开源项目 ： 
 * ServerStatus-Hotaru：https://github.com/CokeMine/ServerStatus-Hotaru
