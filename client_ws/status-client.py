@@ -8,6 +8,7 @@ import os
 import json
 import subprocess
 from collections import deque
+from os import path
 import websocket
 try:
     import ujson as json
@@ -18,11 +19,10 @@ try:
 except ImportError:
     import _thread as thread
 
-SERVER = "ws://127.0.0.1:28094"
-#PORT = 35601
-USER = "Local"
-PASSWORD = "Local"
-INTERVAL = 2  # 更新间隔，单位：秒
+status_server = "ws://127.0.0.1:28094"
+status_user = "Local"
+status_password = "Local"
+status_interval = 2  # 更新间隔，单位：秒
 
 def check_interface(net_name):
     net_name = net_name.strip()
@@ -76,7 +76,7 @@ def get_cpu_time():
 
 def get_cpu():
     old_total, old_idle = get_cpu_time()
-    time.sleep(INTERVAL)
+    time.sleep(status_interval)
     total, idle = get_cpu_time()
     return round(100 - float(idle - old_idle) / (total - old_total) * 100.00, 1)
 
@@ -118,8 +118,8 @@ class Network:
         for x in range(queue_len - 1):
             avg_rx += self.rx[x + 1] - self.rx[x]
             avg_tx += self.tx[x + 1] - self.tx[x]
-        avg_rx = int(avg_rx / queue_len / INTERVAL)
-        avg_tx = int(avg_tx / queue_len / INTERVAL)
+        avg_rx = int(avg_rx / queue_len / status_interval)
+        avg_tx = int(avg_tx / queue_len / status_interval)
         return avg_rx, avg_tx
 
     def get_traffic(self):
@@ -166,7 +166,7 @@ def on_open(ws):
     def run(*args):
         global is_ws_alive
         is_ws_alive = True
-        ws.send(PASSWORD)
+        ws.send(status_password)
         time.sleep(1)
         traffic = Network()
         while True:
@@ -192,14 +192,20 @@ def on_open(ws):
                 "network_in": NET_IN,
                 "network_out": NET_OUT
             }))
-            time.sleep(INTERVAL)
+            time.sleep(status_interval)
     thread.start_new_thread(run, ())
 
 if __name__ == '__main__':
+    with open(path.join(path.dirname(__file__),"config.json"),"r",ncoding="utf-8") as fp:
+        config = json.load(fp)
+    status_user = config["user"]
+    status_server = config["server"]
+    status_password = config["password"]
+    status_interval = config["interval"]
     while True:
         try:
-            print("Connecting to "+SERVER+"/ws/client/"+USER)
-            ws = websocket.WebSocketApp(SERVER+"/ws/client/"+USER,
+            print("Connecting to "+status_server+"/ws/client/"+status_user)
+            ws = websocket.WebSocketApp(status_server+"/ws/client/"+status_user,
                                         on_open = on_open,
                                         on_message=on_message,
                                         on_error=on_error,

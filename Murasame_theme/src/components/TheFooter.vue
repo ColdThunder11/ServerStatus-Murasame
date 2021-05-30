@@ -1,7 +1,7 @@
 <template>
   <p>Powered by <a
       href="https://github.com/ColdThunder11/ServerStatus-Murasame">ServerStatus-Murasame</a></p>
-  <p><a href="https://github.com/ColdThunder11/ServerStatus-Murasame">manage</a></p>
+  <p><a href="https://github.com/ColdThunder11/ServerStatus-Murasame">Manage</a></p>
 </template>
 
 <script lang="ts">

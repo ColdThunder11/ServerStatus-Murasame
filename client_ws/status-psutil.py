@@ -11,6 +11,7 @@ import json
 import collections
 import psutil
 import websocket
+from os import path
 try:
     import ujson as json
 except ImportError:
@@ -20,11 +21,11 @@ try:
 except ImportError:
     import _thread as thread
 
-SERVER = "ws://127.0.0.1:28094"
-#PORT = 35601
-USER = "Local"
-PASSWORD = "Local"
-INTERVAL = 2  # 更新间隔，单位：秒
+status_server = "ws://127.0.0.1:28094"
+status_user = "Local"
+status_password = "Local"
+status_interval = 2  # 更新间隔，单位：秒
+
 
 def get_uptime():
     return int(time.time() - psutil.boot_time())
@@ -68,7 +69,7 @@ def get_load():
 
 
 def get_cpu():
-    return psutil.cpu_percent(interval=INTERVAL)
+    return psutil.cpu_percent(interval=status_interval)
 
 
 class Traffic:
@@ -95,8 +96,8 @@ class Traffic:
             avgrx += self.rx[x + 1] - self.rx[x]
             avgtx += self.tx[x + 1] - self.tx[x]
 
-        avgrx = int(avgrx / l / INTERVAL)
-        avgtx = int(avgtx / l / INTERVAL)
+        avgrx = int(avgrx / l / status_interval)
+        avgtx = int(avgtx / l / status_interval)
 
         return avgrx, avgtx
 
@@ -154,7 +155,7 @@ def on_open(ws:websocket.WebSocketApp):
     def run(*args):
         global is_ws_alive
         is_ws_alive = True
-        ws.send(PASSWORD)
+        ws.send(status_password)
         time.sleep(1)
         traffic = Traffic()
         traffic.get()
@@ -182,15 +183,21 @@ def on_open(ws:websocket.WebSocketApp):
                 "network_in": NET_IN,
                 "network_out": NET_OUT
             }))
-            time.sleep(INTERVAL)
+            time.sleep(status_interval)
     thread.start_new_thread(run, ())
 
 
 if __name__ == '__main__':
+    with open(path.join(path.dirname(__file__),"config.json"),"r",encoding="utf-8") as fp:
+        config = json.load(fp)
+    status_user = config["user"]
+    status_server = config["server"]
+    status_password = config["password"]
+    status_interval = config["interval"]
     while True:
         try:
-            print(f"Connecting to {SERVER}/ws/client/{USER}")
-            ws = websocket.WebSocketApp(f"{SERVER}/ws/client/{USER}",
+            print("Connecting to "+status_server+"/ws/client/"+status_user)
+            ws = websocket.WebSocketApp(status_server+"/ws/client/"+status_user,
                                         on_open = on_open,
                                         on_message=on_message,
                                         on_error=on_error,

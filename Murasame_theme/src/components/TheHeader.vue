@@ -20,7 +20,7 @@ export default defineComponent({
   height: 25rem;
   position: relative;
   /*Replace your header image at this place!*/
-  background: url("../assets/img/status_bg.png") no-repeat center center;
+  background: url("../assets/img/status_bg_compossed.png") no-repeat center center;
   background-size: cover;
 }
 

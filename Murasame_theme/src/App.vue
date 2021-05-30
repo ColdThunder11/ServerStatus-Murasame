@@ -169,7 +169,7 @@ div.bar {
   #header {
     height: 20rem !important;
     /*Replace your header image (for mobile use) at this place!*/
-    background: url("assets/img/status_bg_mobile.png") no-repeat center center !important;
+    background: url("assets/img/status_bg_mobile_compossed.png") no-repeat center center !important;
     background-size: cover !important;
   }
 }

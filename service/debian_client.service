@@ -1,0 +1,11 @@
+[Unit]
+Description=serverstatus clinet service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=${ClientPath}
+ExecStart=${ClientFile}
+
+[Install]
+WantedBy=multi-user.target

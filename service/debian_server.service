@@ -1,0 +1,11 @@
+[Unit]
+Description=serverstatus server service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=${ServerPath}
+ExecStart=${ServerFile}
+
+[Install]
+WantedBy=multi-user.target
