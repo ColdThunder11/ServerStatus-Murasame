@@ -36,7 +36,7 @@
 6.python server.py或uvicorn server:app --host 监听IP --port 端口号   
 服务端默认监听0.0.0.0:28094，可自行在server.py修改。建议监听本地并在公网使用反代（需要同时反代http和websocket）  
 或  
-1.去release里下载server.zip  
+1.去release里下载server.zip，解压并进入ServerStatus-Murasame目录  
 2.将config.json.example复制一份并且重命名为config.json，修改相关配置，也可以直接使用ServerStatus-Hotaru的配置文件  
 3.pip install -r requirements.txt  
 4.python server.py或uvicorn server:app --host 监听IP --port 端口号   
