@@ -20,6 +20,25 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from async_timeout import timeout
 
+class SetClientItem(BaseModel):
+    key: str
+    username: str
+    password: str
+    name:str 
+    type: str
+    location: str
+    disabled: Optional[bool] = True
+    region: str
+
+class ClientItem(BaseModel):
+    username: str
+    password: str
+    type: str
+    location: str
+    disabled: Optional[bool] = True
+    region: str
+
+
 app = FastAPI()
 
 scheduler = None
@@ -71,13 +90,18 @@ user_list = {
         }
     ]
 }
+config = {
+        "listen_host": "0.0.0.0",
+        "listen_port": 28094,
+        "uvicorn_debug_mode": True,
+        "admin_key": "114514"
+}
 
 
 class ClientManager:
     def __init__(self, username: str, ws: WebSocket):
         self.username = username
         self.ws = ws
-        self.lock = threading.Lock()
         self.status = {
             "uptime": "",
             "load": "",
@@ -99,31 +123,34 @@ class ClientManager:
         await self.ws.close()
 
     def get_status(self) -> Dict:
-        with self.lock:
-            status = copy.copy(self.status)
+        status = copy.copy(self.status)
         return status
 
     def set_status(self, data):
-        with self.lock:
-            self.status["uptime"] = data["uptime"]
-            self.status["load"] = data["load"]
-            self.status["memory_total"] = data["memory_total"]
-            self.status["memory_used"] = data["memory_used"]
-            self.status["swap_total"] = data["swap_total"]
-            self.status["swap_used"] = data["swap_used"]
-            self.status["hdd_total"] = data["hdd_total"]
-            self.status["hdd_used"] = data["hdd_used"]
-            self.status["cpu"] = data["cpu"]
-            self.status["network_rx"] = data["network_rx"]
-            self.status["network_tx"] = data["network_tx"]
-            self.status["network_in"] = data["network_in"]
-            self.status["network_out"] = data["network_out"]
-            self.status["update_time"] = int(time.time())
+        self.status["uptime"] = data["uptime"]
+        self.status["load"] = data["load"]
+        self.status["memory_total"] = data["memory_total"]
+        self.status["memory_used"] = data["memory_used"]
+        self.status["swap_total"] = data["swap_total"]
+        self.status["swap_used"] = data["swap_used"]
+        self.status["hdd_total"] = data["hdd_total"]
+        self.status["hdd_used"] = data["hdd_used"]
+        self.status["cpu"] = data["cpu"]
+        self.status["network_rx"] = data["network_rx"]
+        self.status["network_tx"] = data["network_tx"]
+        self.status["network_in"] = data["network_in"]
+        self.status["network_out"] = data["network_out"]
+        self.status["update_time"] = int(time.time())
 
 class ServerManager:
     def __init__(self):
         self.active_clients: Dict = {}
         self.lock = threading.Lock()
+    def save_config(self):
+        with open(path.join(path.dirname(__file__),"config.json"),"r+",encoding="utf8")as fp:
+            fp.seek(0)
+            fp.truncate()
+            json.dump(user_list,fp)
 
     def get_user_obj(self, username: str):
         for user in user_list["servers"]:
@@ -238,10 +265,14 @@ class ServerManager:
         return build_json
 
     def remove_user(self, username: str):
-        with self.lock:
-            if username in self.active_clients.keys():
-                del self.active_clients[username]
-        return
+        try:
+            with self.lock:
+                if username in self.active_clients.keys():
+                    del self.active_clients[username]
+            return
+        except:
+            return
+
 
 manager = ServerManager()
 
@@ -284,7 +315,7 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
         if manager.lock.locked():
             print("detcet unolcked lock, lock will be auto released")
             manager.lock.release()
-        manager.remove_user(user_name)
+        #manager.remove_user(user_name)
         return
     while True:
         try:
@@ -299,7 +330,7 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
         except:
             print("A websocket connection has been closed")
             traceback.print_exc()
-            manager.remove_user(user_name)
+            #manager.remove_user(user_name)
             return
 
 @app.websocket("/ws/stats")
@@ -323,12 +354,66 @@ async def get_status_ws(websocket: WebSocket):
 async def get_json_status():
     return JSONResponse(content=jsonable_encoder(status_json))
 
+@app.get("/admin/getclientsinfo")
+async def get_clients_info(key:str):
+    if key != config["admin_key"]:
+        return JSONResponse(content=jsonable_encoder({
+            "code": 403,
+            "msg": "auth failed"
+        }))
+    else:
+        server_config = user_list
+        return JSONResponse(content=jsonable_encoder(server_config))
+
+@app.post("/admin/setclient")
+async def set_client(postbody:SetClientItem):
+    if postbody.key != config["admin_key"]:
+        return JSONResponse(content=jsonable_encoder({
+            "code": 403,
+            "msg": "auth failed"
+        }))
+    else:
+        global user_list
+        for i in range(len(user_list["servers"])):
+            if user_list["servers"][i]["username"] == postbody.username:
+                user_list["servers"][i]["password"] = postbody.password
+                user_list["servers"][i]["name"] = postbody.name
+                user_list["servers"][i]["type"] = postbody.type
+                user_list["servers"][i]["host"] = "None"
+                user_list["servers"][i]["location"] = postbody.location
+                user_list["servers"][i]["disabled"] = postbody.disabled
+                user_list["servers"][i]["region"] = postbody.region
+                manager.save_config()
+                return JSONResponse(content=jsonable_encoder({
+                    "code": 0,
+                    "msg": "success"
+                }))
+        user_list["servers"].append(
+            {
+                "username": postbody.username,
+                "password": postbody.password,
+                "name": postbody.name,
+                "type": postbody.type,
+                "host": "None",
+                "location": postbody.location,
+                "disabled": postbody.disabled,
+                "region": postbody.region
+            }
+        )
+        manager.save_config()
+        return JSONResponse(content=jsonable_encoder({
+            "code": 0,
+            "msg": "success"
+        }))
+
 @app.on_event("startup")
 def init_server():
     global scheduler
     global user_list
+    global config
     with open(path.join(path.dirname(__file__),"config.json"),"r",encoding="utf8")as fp:
         user_list = json.load(fp)
+    config = user_list["config"]
     scheduler = AsyncIOScheduler()
     scheduler.add_job(refesh_status, "interval", seconds=1)
     scheduler.start()
@@ -339,5 +424,9 @@ def init_server():
 
 if __name__ == "__main__":
     import uvicorn
+    with open(path.join(path.dirname(__file__),"config.json"),"r",encoding="utf8")as fp:
+        user_list = json.load(fp)
+    if "config" in user_list:
+        config = user_list["config"]
     uvicorn.Config(app)
-    uvicorn.run(app, host="0.0.0.0", port=28094, debug=True)
+    uvicorn.run(app, host=config["listen_host"], port=config["listen_port"], debug=config["uvicorn_debug_mode"])
