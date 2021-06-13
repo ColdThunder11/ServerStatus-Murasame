@@ -413,7 +413,8 @@ def init_server():
     global config
     with open(path.join(path.dirname(__file__),"config.json"),"r",encoding="utf8")as fp:
         user_list = json.load(fp)
-    config = user_list["config"]
+    if "config" in user_list:
+        config = user_list["config"]
     scheduler = AsyncIOScheduler()
     scheduler.add_job(refesh_status, "interval", seconds=1)
     scheduler.start()
