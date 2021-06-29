@@ -19,6 +19,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from async_timeout import timeout
+import sys
+import _thread
 
 class SetClientItem(BaseModel):
     key: str
@@ -37,7 +39,6 @@ class ClientItem(BaseModel):
     location: str
     disabled: Optional[bool] = True
     region: str
-
 
 app = FastAPI()
 
@@ -97,7 +98,6 @@ config = {
         "admin_key": "114514"
 }
 
-
 class ClientManager:
     def __init__(self, username: str, ws: WebSocket):
         self.username = username
@@ -142,10 +142,17 @@ class ClientManager:
         self.status["network_out"] = data["network_out"]
         self.status["update_time"] = int(time.time())
 
+    async def close_ws(self):
+        try:
+            await self.ws.close()
+        except:
+            pass
+
 class ServerManager:
     def __init__(self):
         self.active_clients: Dict = {}
         self.lock = threading.Lock()
+        self.auth_lock = threading.Lock()
     def save_config(self):
         with open(path.join(path.dirname(__file__),"config.json"),"r+",encoding="utf8")as fp:
             fp.seek(0)
@@ -176,11 +183,13 @@ class ServerManager:
                 print("Authentication success")
                 await ws.send_text("Authentication success")
                 with self.lock:
-                    #if username in self.active_clients.keys():
-                        #print("A exsisting connection will be closed")
+                    if username in self.active_clients.keys():
+                        print("A exsisting connection will be closed")
+                        await self.active_clients[username].close_ws()
                     self.active_clients[username] = ClientManager(username, ws)
                 return True
         except:
+            traceback.print_exc()
             if manager.lock.locked():
                 print("detcet unolcked lock, lock will be auto released")
                 manager.lock.release()
@@ -273,7 +282,6 @@ class ServerManager:
         except:
             return
 
-
 manager = ServerManager()
 
 async def refesh_status():
@@ -305,10 +313,13 @@ async def get_robots_txt():
 async def report_ws_endpoint(websocket: WebSocket, user_name: str):
     print(f"Get new client ws connection USER={user_name}")
     try:
-        async with timeout(20):
-            if not (await manager.auth_connection(websocket, user_name)):
-                return
-        cmanager = manager.get_client_manager(user_name)
+        if manager.auth_lock.locked():
+            return
+        with manager.auth_lock:
+            async with timeout(20):
+                if not (await manager.auth_connection(websocket, user_name)):
+                    return
+            cmanager = manager.get_client_manager(user_name)
     except:
         print("A websocket connection has been closed")
         traceback.print_exc()
@@ -323,13 +334,15 @@ async def report_ws_endpoint(websocket: WebSocket, user_name: str):
                 try:
                     res = await websocket.receive_json()
                 except:
-                    print("websocket wait error, drop it")
-                    break
+                    return
             #print(f"Get status report from {user_name}")
             cmanager.set_status(res)
         except:
             print("A websocket connection has been closed")
             traceback.print_exc()
+            if manager.lock.locked():
+                print("detcet unolcked lock, lock will be auto released")
+                manager.lock.release()
             #manager.remove_user(user_name)
             return
 
