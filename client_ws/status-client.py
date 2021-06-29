@@ -23,12 +23,11 @@ status_server = "ws://127.0.0.1:28094"
 status_user = "Local"
 status_password = "Local"
 status_interval = 2  # 更新间隔，单位：秒
+invalid_interface_name = ['lo', 'tun', 'kube', 'docker', 'vmbr', 'br-', 'vnet', 'veth']
 
 def check_interface(net_name):
     net_name = net_name.strip()
-    invalid_name = ['lo', 'tun', 'kube', 'docker', 'vmbr', 'br-', 'vnet', 'veth']
-    return not any(name in net_name for name in invalid_name)
-
+    return not any(name in net_name for name in invalid_interface_name)
 
 def get_uptime():
     with open('/proc/uptime', 'r') as f:
@@ -202,6 +201,7 @@ if __name__ == '__main__':
     status_server = config["server"]
     status_password = config["password"]
     status_interval = config["interval"]
+    invalid_interface_name = config["invalid_interface_name"]
     while True:
         try:
             print("Connecting to "+status_server+"/ws/client/"+status_user)

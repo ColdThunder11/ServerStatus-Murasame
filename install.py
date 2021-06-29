@@ -55,7 +55,8 @@ if system_type == "debian" and action == "ic":
         "server": server_addr,
         "user": user,
         "password": password,
-        "interval": 2 
+        "interval": 2 ,
+        "invalid_interface_name": ["lo", "tun", "kube", "docker", "vmbr", "br-", "vnet", "veth"]
     }
     with open(path.join(current_path,"config.json"),'w',encoding='utf8')as fp:
         fp.seek(0)
