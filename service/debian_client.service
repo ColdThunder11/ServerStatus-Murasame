@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=${ClientPath}
-ExecStart=python3 ${ClientFile}
+WorkingDirectory=/usr/local/ServerStatus/client
+ExecStart=python3 /usr/local/ServerStatus/client/status-client.py
 
 [Install]
 WantedBy=multi-user.target
