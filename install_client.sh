@@ -34,7 +34,7 @@ Download_Server_Status_client() {
   if ! wget --no-check-certificate "${link_prefix}/client_ws/status-client.py" -O "${client_path}/status-client.py"; then
     echo -e "${Error} ServerStatus 客户端下载失败 !" && exit 1
   fi
-  if ! wget --no-check-certificate "${link_prefix}/service/server_status_client_debian" -O /etc/systemd/system/statusc.service; then
+  if ! wget --no-check-certificate "${link_prefix}/service/debian_client.service" -O /etc/systemd/system/statusc.service; then
     echo -e "${Error} ServerStatus 客户端下载失败 !" && exit 1
   fi
   echo -e "${Info} ServerStatus 客户端下载完成 !"
@@ -57,14 +57,16 @@ Installation_dependency() {
   if [ ${release} == "centos" ]; then
       if [ "${python_status}" -eq 0 ]; then
       yum -y update
-      yum -y install python3 wget
+      yum -y install python3 wget git
       fi
   else
       if [ "${python_status}" -eq 0 ]; then
       apt-get -y update
-      apt-get -y install python3 wget
+      apt-get -y install python3 wget git
+      apt-get -y install python3-pip
       fi
   fi
+  python3 -m pip install websocket-client
 }
 Config_client(){
   echo -e "请输入服务端地址"
@@ -80,16 +82,22 @@ Config_client(){
 {
     "server": "${server_address}",
     "user": "${username}",
-    "password": "${username}",
+    "password": "${password}",
     "interval": 2,
     "invalid_interface_name": ["lo", "tun", "kube", "docker", "vmbr", "br-", "vnet", "veth"]
 }
 EOF
+}
+Start_service(){
+  systemctl daemon-reload
+  systemctl enable statusc
+  systemctl restart statusc
 }
 check_sys
 Create_dir
 Installation_dependency
 Download_Server_Status_client
 Config_client
+Start_service
 echo -e "安装完成"
 
