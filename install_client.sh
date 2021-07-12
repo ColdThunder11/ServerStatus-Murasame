@@ -87,6 +87,7 @@ Config_client(){
 EOF
 }
 check_sys
+Create_dir
 Installation_dependency
 Download_Server_Status_client
 Config_client
