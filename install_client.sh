@@ -49,18 +49,11 @@ Create_dir(){
     fi
 }
 Installation_dependency() {
-  if python3 --help >/dev/null 2>&1; then
-    python_status=1
-  else
-    python_status=0
-  fi
   if [ ${release} == "centos" ]; then
-      if [ "${python_status}" -eq 0 ]; then
       yum -y update
       yum -y install python3 wget git
       fi
   else
-      if [ "${python_status}" -eq 0 ]; then
       apt-get -y update
       apt-get -y install python3 wget git
       apt-get -y install python3-pip
