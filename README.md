@@ -45,25 +45,14 @@
 客户端：  
 linux版：  
 ```shell
-wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-client.py  
-wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/config.json
-pip install websocket-client  
-修改config.json  
-python status-client.py 
+wget https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master/install_client.sh
+bash install_client.sh
 ```
 psutil版：  
 1.下载https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/status-psutil.py 以及https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/client_ws/config.json  
 2.pip install psutil websocket-client  
 3.修改config.json  
 4.python status-psutil.py  
-
-### 一键安装
-客户端(当前仅支持Debian):  
-会在当前目录安装，请先切换好目录  
-```shell
-wget https://github.com/ColdThunder11/ServerStatus-Murasame/raw/master/install.py
-python3 install.py -c 如果本机没有安装pip，可以使用-nopip参数本地处理依赖
-```
 
 ## 相关开源项目 ： 
 * ServerStatus-Hotaru：https://github.com/CokeMine/ServerStatus-Hotaru

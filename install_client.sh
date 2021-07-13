@@ -58,11 +58,11 @@ Create_dir(){
 Installation_dependency() {
   if [ ${release} == "centos" ]; then
     yum -y update
-    yum -y install python3 wget git
+    yum -y install python3 wget
     yum -y install python3-pip
   else
     apt-get -y update
-    apt-get -y install python3 wget git
+    apt-get -y install python3 wget
     apt-get -y install python3-pip
   fi
   python3 -m pip install websocket-client
