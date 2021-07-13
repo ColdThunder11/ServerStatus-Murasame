@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "ColdThunder11/ServerStatus-Murasame一键安装脚本"
+echo "ColdThunder11/ServerStatus-Murasame 一键安装脚本"
 github_raw_addr="https://raw.githubusercontent.com/ColdThunder11/ServerStatus-Murasame/master"
 server_path="/usr/local/ServerStatus/server"
 client_path="/usr/local/ServerStatus/client"
@@ -34,30 +34,36 @@ Download_Server_Status_client() {
   if ! wget --no-check-certificate "${link_prefix}/client_ws/status-client.py" -O "${client_path}/status-client.py"; then
     echo -e "${Error} ServerStatus 客户端下载失败 !" && exit 1
   fi
-  if ! wget --no-check-certificate "${link_prefix}/service/debian_client.service" -O /etc/systemd/system/statusc.service; then
-    echo -e "${Error} ServerStatus 客户端下载失败 !" && exit 1
+  if [ ${release} == "centos" ]; then
+    if ! wget --no-check-certificate "${link_prefix}/service/debian_client.service" -O /usr/lib/systemd/system/statusc.service; then
+      echo -e "${Error} ServerStatus 客户端下载失败 !" && exit 1
+    fi
+    chmod 755 /usr/lib/systemd/system/statusc.service
+  else
+    if ! wget --no-check-certificate "${link_prefix}/service/debian_client.service" -O /etc/systemd/system/statusc.service; then
+      echo -e "${Error} ServerStatus 客户端下载失败 !" && exit 1
+    fi
+    chmod 755 /etc/systemd/system/statusc.service
   fi
   echo -e "${Info} ServerStatus 客户端下载完成 !"
-  chmod 755 /etc/systemd/system/statusc.service
 }
 Create_dir(){
     if [ ! -d ${root_path} ]; then
-        mkdir ${root_path}
+      mkdir ${root_path}
     fi
     if [ ! -d ${client_path} ]; then
-        mkdir ${client_path}
+      mkdir ${client_path}
     fi
 }
 Installation_dependency() {
   if [ ${release} == "centos" ]; then
-      yum -y update
-      yum -y install python3 wget git
-      fi
+    yum -y update
+    yum -y install python3 wget git
+    yum -y install python3-pip
   else
-      apt-get -y update
-      apt-get -y install python3 wget git
-      apt-get -y install python3-pip
-      fi
+    apt-get -y update
+    apt-get -y install python3 wget git
+    apt-get -y install python3-pip
   fi
   python3 -m pip install websocket-client
 }
@@ -86,11 +92,16 @@ Start_service(){
   systemctl enable statusc
   systemctl restart statusc
 }
+echo -e "正在检查系统"
 check_sys
 Create_dir
+echo -e "正在安装依赖"
 Installation_dependency
+echo -e "正在下载客户端"
 Download_Server_Status_client
+echo -e "开始配置客户端"
 Config_client
+echo -e "正在配置服务"
 Start_service
 echo -e "安装完成"
 
