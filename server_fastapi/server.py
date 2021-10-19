@@ -40,7 +40,7 @@ class ClientItem(BaseModel):
     disabled: Optional[bool] = True
     region: str
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 
 scheduler = None
 
